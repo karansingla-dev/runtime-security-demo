@@ -1,0 +1,40 @@
+# Gitpod configuration
+image:
+  file: .gitpod.Dockerfile
+
+tasks:
+  - name: Setup and Start Services
+    init: |
+      # Install dependencies
+      pip install requests
+      
+      # Build the application
+      docker-compose build
+      
+      # Make test script executable
+      chmod +x test_demo.sh
+      
+      echo "✅ Setup complete! Ready to start services."
+    command: |
+      echo "🚀 Starting Runtime Security Demo..."
+      docker-compose up -d
+      echo ""
+      echo "⏳ Waiting for services to start (30 seconds)..."
+      sleep 30
+      echo ""
+      echo "📊 Services Status:"
+      docker-compose ps
+      echo ""
+      echo "✅ Ready! Run: ./test_demo.sh"
+
+ports:
+  - port: 5000
+    onOpen: ignore
+    visibility: public
+  - port: 5432
+    onOpen: ignore
+
+vscode:
+  extensions:
+    - ms-python.python
+    - ms-azuretools.vscode-docker

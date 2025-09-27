@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: testdb
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+
+  api:
+    build: ./app
+    container_name: api_service
+    environment:
+      DB_HOST: postgres
+      DB_USER: user
+      DB_PASSWORD: password
+      DB_NAME: testdb
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+    networks:
+      - app-network
+
+  falco:
+    image: falcosecurity/falco:latest
+    container_name: falco
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/host/var/run/docker.sock
+      - /proc:/host/proc:ro
+      - /boot:/host/boot:ro
+      - /lib/modules:/host/lib/modules:ro
+      - /usr:/host/usr:ro
+      - ./falco-config/falco.yaml:/etc/falco/falco.yaml:ro
+      - ./falco-config/falco_rules.local.yaml:/etc/falco/falco_rules.local.yaml:ro
+    command: ["/usr/bin/falco", "-o", "engine.kind=modern_ebpf"]
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

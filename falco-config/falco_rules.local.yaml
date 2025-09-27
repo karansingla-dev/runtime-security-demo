@@ -1,0 +1,29 @@
+- rule: Read sensitive file /etc/passwd
+  desc: Detect when /etc/passwd is read inside a container
+  condition: >
+    container and 
+    evt.type in (open, openat, openat2) and
+    evt.is_open_read=true and
+    fd.name="/etc/passwd"
+  output: >
+    Sensitive file /etc/passwd was read 
+    (user=%user.name pid=%proc.pid command=%proc.cmdline 
+    container=%container.name image=%container.image.repository 
+    file=%fd.name)
+  priority: WARNING
+  tags: [filesystem, sensitive_files, T1003]
+
+- rule: SQL Query SELECT ALL on PII Table
+  desc: Detect when SELECT * is used on PII table via psql
+  condition: >
+    container and
+    evt.type in (execve, execveat) and
+    proc.name="psql" and
+    (proc.cmdline contains "SELECT *" or proc.cmdline contains "select *") and
+    (proc.cmdline contains "PII" or proc.cmdline contains "pii")
+  output: >
+    Potentially dangerous SELECT * query on PII table detected 
+    (user=%user.name pid=%proc.pid command=%proc.cmdline 
+    container=%container.name)
+  priority: CRITICAL
+  tags: [database, pii, sensitive_data, T1005]
