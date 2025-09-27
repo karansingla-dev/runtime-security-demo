@@ -1,8 +1,18 @@
+# Falco configuration with plugins
 json_output: true
 json_include_output_property: true
 log_level: info
 log_stderr: true
 log_syslog: false
+
+# Load plugins
+plugins:
+  - name: container
+    library_path: libcontainer.so
+    init_config: ""
+
+# Load plugin rules
+load_plugins: [container]
 
 rules_files:
   - /etc/falco/falco_rules.yaml
